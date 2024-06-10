@@ -14,6 +14,7 @@ import javax.swing.SwingUtilities;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.sdl.bean.RulesOutputHolder;
 import org.sdl.rule.AllRules;
@@ -43,7 +44,7 @@ public class SeleniumHandler {
 
 			AppUtil.log(this.getClass(), "---------------------------");
 
-			loadChromeDriver();
+//			loadChromeDriver();
 
 			AppUtil.log(this.getClass(), "---------------------------");
 			AppUtil.log(this.getClass(), "Multi URLs received : " + multiUrlInput);
@@ -126,7 +127,8 @@ public class SeleniumHandler {
 
 	private void invokeRules(String WORKING_URL) throws IOException, LangDetectException, InterruptedException, InvalidFormatException {
 		AppUtil.log(this.getClass(),WORKING_URL );
-		 driver = new FirefoxDriver();
+		 driver = new ChromeDriver();
+		 driver.manage().window().maximize();
 		try {
 			// driver.get("https://cpr.heart.org/en/");
 	
@@ -140,7 +142,8 @@ public class SeleniumHandler {
 		counter++;
 		AllRules allRules = new AllRules();
 		allRules.ariaLabel(".\\Reports\\excel\\Accessibility_"+counter+".xlsx",driver, outputList,counter,WORKING_URL);
-		allRules.verifyHyperlinks(driver, ".\\Reports\\excel\\Accessibility_"+counter+".xlsx", WORKING_URL, counter);
+//		allRules.LinkCheck(driver, ".\\Reports\\excel\\Accessibility_"+counter+".xlsx", WORKING_URL, counter);
+		allRules.landMark(driver, WORKING_URL);
 		allRules.altAttribute(".\\Reports\\excel\\Accessibility_"+counter+".xlsx",driver, outputList,counter,WORKING_URL);
 		AllRules.mergeExcelFilesFromFolder(".\\Reports\\excel", ".\\Reports\\Accessibility.xlsx");
 

@@ -63,7 +63,7 @@ public class AllRules {
 				XSSFRow headingRow1 = sheet.createRow(rowNum++);
 				XSSFRow headingRow = sheet.createRow(rowNum++);
 				// Create a cell for the heading
-				XSSFCell headingCell = headingRow.createCell(0);
+				XSSFCell headingCell = headingRow.createCell(1);
 				XSSFCell headingCell1 = headingRow1.createCell(1);
 				// Set the heading text
 				headingCell.setCellValue("Buttons Without Aria Label");
@@ -93,7 +93,7 @@ public class AllRules {
 				AppUtil.log(this.getClass(), "Button has no aria label : " + button.getText());
 				XSSFRow row = sheet.createRow(rowNum++);
 				// Create a new cell in the row and set the button text as its value
-				row.createCell(3).setCellValue(button.getText());
+				row.createCell(2).setCellValue(button.getText());
 
 
 				RulesOutputHolder outputHolder = new RulesOutputHolder();
@@ -121,10 +121,10 @@ public class AllRules {
 				XSSFRow headingRow1 = sheet.createRow(rowNum++);
 				XSSFRow headingRow = sheet.createRow(rowNum++);
 				// Create a cell for the heading
-				XSSFCell headingCell = headingRow.createCell(0);
+				XSSFCell headingCell = headingRow.createCell(1);
 				XSSFCell headingCell1 = headingRow1.createCell(1);
 				// Set the heading text
-				headingCell.setCellValue("Buttons Without Aria Label");
+				headingCell.setCellValue("Buttons Without Alt Attribute");
 			
 				headingCell1.setCellValue(url);
 				headingRow1.createCell(0).setCellValue("Link");
@@ -148,7 +148,7 @@ public class AllRules {
 				allImagesHaveAlt = false;
 				XSSFRow row = sheet.createRow(rowNum++);
 				// Create a new cell in the row and set the button text as its value
-				row.createCell(3).setCellValue(image.getAttribute("src"));
+				row.createCell(2).setCellValue(image.getAttribute("src"));
 				System.out.println("Image missing alt attribute:" + image.getAttribute("src"));
 				AppUtil.log(this.getClass(), "Image missing alt attribute:" + image.getAttribute("src"));
 				
@@ -412,9 +412,11 @@ public class AllRules {
                             // Handle other cell types as needed
                     }
                     }
+                   
                 }
             }
         }
+        formatSheet(targetSheet);
     }
     private static void addColoredRow(Sheet sheet) {
         int lastRowNum = sheet.getLastRowNum();
@@ -432,13 +434,54 @@ public class AllRules {
         }
     }
     
-    public void verifyHyperlinks(WebDriver driver, String filePath,String url,int b) throws IOException {
+ 
+
+    
+    private static void formatSheet(Sheet sheet) {
+        // Set fixed column width
+        int fixedColumnWidth = 30*256; // Adjust this value as needed (in units of 1/256th of a character width)
+        int lastRowNum = sheet.getLastRowNum();
+        int lastCellNum = 0;
+        for (int i = 0; i <= lastRowNum; i++) {
+            Row row = sheet.getRow(i);
+            if (row != null) {
+                lastCellNum = Math.max(lastCellNum, row.getLastCellNum());
+            }
+        }
+        for (int i = 0; i < lastCellNum; i++) {
+        	if(i==0) {
+        		sheet.setColumnWidth(i, 5*256);
+        	}else {
+            sheet.setColumnWidth(i, fixedColumnWidth);
+        }
+        }	
+
+        // Auto-adjust row height and enable text wrapping
+        for (Row row : sheet) {
+            for (Cell cell : row) {
+                CellStyle style = cell.getCellStyle();
+                if (style == null) {
+                    style = sheet.getWorkbook().createCellStyle();
+                    cell.setCellStyle(style);
+                }
+                style.setWrapText(true); // Enable text wrapping
+               
+            }
+        }
+    }
+
+
+    
+    public void LinkCheck(WebDriver driver, String filePath,String url,int b) throws IOException {
     	rowNum++;
 //    	PrintWriter writer = new PrintWriter(new FileWriter(filePath));
 //		sheet= workbook.createSheet("Accessibility"+b);
         // Find all hyperlink elements
+    	  List<String[]> errorLinks = new ArrayList<>(); // List to store links with exceptions
+
         List<WebElement> links = driver.findElements(By.tagName("a"));
         System.out.println(links.size());
+ 
         // Map to store link text and corresponding URL
         Map<String, String> linkMap = new HashMap<>();
         
@@ -447,7 +490,7 @@ public class AllRules {
 		XSSFRow headingRow1 = sheet.createRow(rowNum++);
 		XSSFRow headingRow = sheet.createRow(rowNum++);
 		// Create a cell for the heading
-		XSSFCell headingCell = headingRow.createCell(0);
+		XSSFCell headingCell = headingRow.createCell(1);
 		XSSFCell headingCell1 = headingRow1.createCell(1);
 		// Set the heading text
 		headingCell.setCellValue("Broken Links");
@@ -466,12 +509,12 @@ public class AllRules {
 		defaultFont.setBold(false);
 		XSSFCellStyle defaultCellStyle = workbook.createCellStyle();
 		defaultCellStyle.setFont(defaultFont);
-
+		
         // Loop through all hyperlinks
         for (WebElement link : links) {
             String text = link.getText().trim();
             String url1 = link.getAttribute("href");
-           
+        
             // Check if the link is working
             if (url1 != null && !url1.isEmpty() && !url1.contains("mailto:")) {
                 try {
@@ -491,8 +534,18 @@ public class AllRules {
 //                    Assert.assertTrue(responseCode < 400, "Broken link: " + url + " with response code: " + responseCode);
                 } catch (IOException e) {
                     System.out.println("Exception while checking link: " + url1 +"Error :"+e);
+                    errorLinks.add(new String[]{url1, e.toString()}); // Add link and error message to the list
                 }
             } 
+        }
+        
+        // After all links are checked, add the error links to the Excel sheet
+        for (String[] errorLink : errorLinks) {
+        	
+            XSSFRow row = sheet.createRow(rowNum++);
+            row.createCell(2).setCellValue("Error occured :");
+            row.createCell(3).setCellValue(errorLink[1]);
+            row.createCell(4).setCellValue(errorLink[0]);
         }
         for (WebElement link : links) {
             String text = link.getText().trim();
@@ -518,6 +571,9 @@ public class AllRules {
         }
         }
         
+      
+        
+        
         // Ensure that different texts have different URLs
         List<Map.Entry<String, String>> entries = new ArrayList<>(linkMap.entrySet());
         for (int i = 0; i < entries.size(); i++) {
@@ -539,5 +595,68 @@ public class AllRules {
 //        try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
 //	        workbook.write(fileOut);
 //	    }
+    }
+    
+    
+    public void landMark(WebDriver driver,String url) {
+        // Get all unique role attribute values
+//        Set<String> uniqueRoles = getAllUniqueRoleAttributes(driver);
+
+   
+        // Check for HTML5 semantic elements
+        checkSemanticElements(driver,url);
+    
+    }
+    
+    // Method to check if elements with specific tags are present
+    public  void checkSemanticElements(WebDriver driver,String url) {
+    	rowNum++;
+    	// Initialize a row index counter
+		XSSFRow headingRow1 = sheet.createRow(rowNum++);
+		XSSFRow headingRow = sheet.createRow(rowNum++);
+		// Create a cell for the heading
+		XSSFCell headingCell = headingRow.createCell(1);
+		XSSFCell headingCell1 = headingRow1.createCell(1);
+		// Set the heading text
+		headingCell.setCellValue("Landmark");
+		headingCell1.setCellValue(url);
+		headingRow1.createCell(0).setCellValue("Link");
+		// Create a font with bold style for the heading
+		XSSFFont boldFont = workbook.createFont();
+		boldFont.setBold(true);
+		// Apply the bold font to the heading cell
+		XSSFCellStyle boldCellStyle = workbook.createCellStyle();
+		boldCellStyle.setFont(boldFont);
+		headingCell.setCellStyle(boldCellStyle);
+
+		// Set default font for other cells
+		XSSFFont defaultFont = workbook.createFont();
+		defaultFont.setBold(false);
+		XSSFCellStyle defaultCellStyle = workbook.createCellStyle();
+		defaultCellStyle.setFont(defaultFont);
+		boolean allTagsPresent=true;
+        String[] tags = { "header","nav", "main", "footer", "form", "input"};
+        for (String tag : tags) {
+            List<WebElement> elements = driver.findElements(By.tagName(tag));
+            if (elements.size() > 0) {
+                System.out.println("Elements with tag '" + tag + "' are present.");
+            } else {
+                System.out.println("No elements with tag '" + tag + "' found.");
+                XSSFRow row = sheet.createRow(rowNum++);
+				// Create a new cell in the row and set the button text as its value
+                row.createCell(2).setCellValue("Missing HTML Semantics");
+				row.createCell(3).setCellValue(tag);
+				allTagsPresent=false;
+            }
+        }
+        if(allTagsPresent) {
+        	 XSSFRow row = sheet.createRow(rowNum++);
+        	row.createCell(2).setCellValue("All HTML Semantics are present");
+        }
+    }
+    
+    
+    public void excelSetup(String url,String ruleName) {
+    	
     }
 }
