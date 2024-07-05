@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Future;
-import java.util.concurrent.ScheduledExecutorService;
 
 import javax.swing.JButton;
 import javax.swing.JTextArea;
@@ -18,7 +17,6 @@ import javax.swing.SwingUtilities;
 
 import org.sdl.task.SeleniumHandler;
 import org.sdl.ui.MainFrame;
-import org.sdl.util.AppUtil;
 
 import com.google.common.util.concurrent.ListeningScheduledExecutorService;
 

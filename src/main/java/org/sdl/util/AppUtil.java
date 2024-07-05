@@ -13,4 +13,6 @@ public class AppUtil {
         appendToLogArea(currentDateTime + " " + className.getName() + " - " + msg);
 
     }
+
+   
 }

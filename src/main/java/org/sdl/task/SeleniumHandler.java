@@ -13,11 +13,22 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.firefox.FirefoxDriver;
 import org.sdl.bean.RulesOutputHolder;
-import org.sdl.rule.AllRules;
+import org.sdl.rule.AltAttribute;
+import org.sdl.rule.AriaLable;
+import org.sdl.rule.FieldIdentification;
+import org.sdl.rule.FocusOrder;
+import org.sdl.rule.IconCheck;
+import org.sdl.rule.ImageOfText;
+import org.sdl.rule.LandMark;
+import org.sdl.rule.LinkCheck;
+import org.sdl.rule.MinimumTargetSize;
+import org.sdl.rule.ClosePopup;
+import org.sdl.rule.ColorContrastNonText;
+import org.sdl.rule.ColorContrastText;
 import org.sdl.ui.MainFrame;
 import org.sdl.util.AppUtil;
 
@@ -28,7 +39,6 @@ public class SeleniumHandler {
 	String multiUrlInput;
 	MainFrame mainFrame;
 	List<RulesOutputHolder> outputList = new ArrayList<>();
-	int counter=0;
 	public static String WORKING_URL = "";
 
 	public SeleniumHandler(MainFrame mainFrame) {
@@ -52,9 +62,9 @@ public class SeleniumHandler {
 			ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
 			executor.schedule(() -> {
 				try {
-					
-							executeRule();
-						} catch (Exception e) {
+
+					executeRule();
+				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -103,12 +113,12 @@ public class SeleniumHandler {
 			String[] urlArray = multiUrlInput.split(",");
 
 			for (String url : urlArray) {
-		
+
 				AppUtil.log(this.getClass(), "----------");
 				WORKING_URL = url;
 				AppUtil.log(this.getClass(), "Accessibility Rules execution starting on URL : " + WORKING_URL);
 				invokeRules(WORKING_URL.trim());
-			
+
 				AppUtil.log(this.getClass(), "Accessibility Rules execution finished");
 			}
 
@@ -125,13 +135,16 @@ public class SeleniumHandler {
 		AppUtil.log(this.getClass(), "---------------------------");
 	}
 
-	private void invokeRules(String WORKING_URL) throws IOException, LangDetectException, InterruptedException, InvalidFormatException {
-		AppUtil.log(this.getClass(),WORKING_URL );
-		 driver = new ChromeDriver();
-		 driver.manage().window().maximize();
+	private void invokeRules(String WORKING_URL)
+			throws IOException, LangDetectException, InterruptedException, InvalidFormatException {
+		AppUtil.log(this.getClass(), WORKING_URL);
+		driver = new ChromeDriver();
+		driver.manage().window().maximize();
+		JavascriptExecutor jsExecutor = (JavascriptExecutor) driver;
+		jsExecutor.executeScript("document.body.style.transform = '90%';");
 		try {
 			// driver.get("https://cpr.heart.org/en/");
-	
+
 			driver.get(WORKING_URL);
 			Thread.sleep(5000);
 		} catch (InterruptedException e) {
@@ -139,19 +152,46 @@ public class SeleniumHandler {
 			e.printStackTrace();
 		}
 		// Log or process page content as needed
-		counter++;
-		AllRules allRules = new AllRules();
-		allRules.ariaLabel(".\\Reports\\excel\\Accessibility_"+counter+".xlsx",driver, outputList,counter,WORKING_URL);
-//		allRules.LinkCheck(driver, ".\\Reports\\excel\\Accessibility_"+counter+".xlsx", WORKING_URL, counter);
-		allRules.landMark(driver, WORKING_URL);
-		allRules.altAttribute(".\\Reports\\excel\\Accessibility_"+counter+".xlsx",driver, outputList,counter,WORKING_URL);
-		AllRules.mergeExcelFilesFromFolder(".\\Reports\\excel", ".\\Reports\\Accessibility.xlsx");
-
-//		allRules.keyboard(driver, outputList);
+		
+		ClosePopup closePopup = new ClosePopup();
+		closePopup.execute(driver, outputList);
 
 //		AriaLable ariaLable = new AriaLable();
 //		ariaLable.execute(driver, outputList);
+//
+//		AltAttribute altAttribute = new AltAttribute();
+//		altAttribute.execute(driver, outputList);
+//
+////		LinkCheck linkCheck = new LinkCheck();
+////		linkCheck.execute(driver, outputList);
+//
+//		LandMark landMark = new LandMark();
+//		landMark.execute(driver, outputList);
+//
+//		IconCheck iconCheck = new IconCheck();
+//		iconCheck.execute(driver, outputList);
+//		
+//		FieldIdentification fieldIdentification = new FieldIdentification();
+//		fieldIdentification.execute(driver, outputList);
+//
+//		
+//		ColorContrastText colorContrastText = new ColorContrastText();
+//		colorContrastText.execute(driver, outputList);
+//		
+//		ColorContrastNonText colorContrastNonText =new ColorContrastNonText();
+//		colorContrastNonText.execute(driver, outputList);
+//		
+		FocusOrder focusOrder=new FocusOrder();
+		focusOrder.execute(driver, outputList);
+//		
+//		MinimumTargetSize minimumTargetSize = new MinimumTargetSize();
+//		minimumTargetSize.execute(driver, outputList);
 		
+//		ImageOfText imageOfText = new ImageOfText();
+//		imageOfText.execute(driver, outputList);
+		
+	
+
 //
 //		HeadingsLables headingsLables = new HeadingsLables();
 //		headingsLables.execute(driver, outputList);

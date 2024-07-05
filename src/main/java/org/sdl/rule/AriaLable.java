@@ -6,7 +6,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeDriver;
 import org.sdl.bean.RulesOutputHolder;
 import org.sdl.task.SeleniumHandler;
 import org.sdl.util.AppUtil;
@@ -27,7 +26,6 @@ public class AriaLable {
 		AppUtil.log(this.getClass(), "Elements without aria-label:");
 
 		for (WebElement button : buttons) {
-			String tagName = button.getTagName();
 			String ariaLabel = button.getAttribute("aria-label");
 			if ((ariaLabel == null || ariaLabel.isEmpty()) && !StringUtils.isEmpty(button.getText())) {
 				System.out.println("Button has no aria label : " + button.getText());

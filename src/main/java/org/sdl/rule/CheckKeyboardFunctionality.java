@@ -6,10 +6,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import org.testng.Assert;
-import org.testng.annotations.DataProvider;
-import org.testng.annotations.Test;
-import org.apache.commons.lang3.StringUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
@@ -21,9 +17,9 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.sdl.bean.RulesOutputHolder;
 import org.sdl.util.AppUtil;
+import org.testng.Assert;
 
 public class CheckKeyboardFunctionality {
-//	public checkKeyboardFunctionality(String filePath) throws InterruptedException, IOException {
 
 	public void execute(WebDriver driver, List<RulesOutputHolder> outputList) throws InterruptedException, IOException {
 		String currentHandle = null;
@@ -34,7 +30,7 @@ public class CheckKeyboardFunctionality {
 
 			// Move mouse to the right edge of the webpage
 //		        actions.moveToElement(driver.findElement(By.cssSelector("input[title='Submit Search']"))).build().perform();
-		
+
 			String baseURL = driver.getCurrentUrl();
 			List<WebElement> hrefs = driver.findElements(By.tagName("a"));
 
@@ -118,7 +114,7 @@ public class CheckKeyboardFunctionality {
 					if (focusedElement.getTagName().equals("a")
 							&& !focusedElement.getText().equalsIgnoreCase("Skip to main content")) {
 						System.out.println(focusedElement.getText());
-						
+
 						focusedElement.sendKeys(Keys.ENTER);
 						WebDriverWait wait = new WebDriverWait(driver, java.time.Duration.ofSeconds(20));
 						wait.until(ExpectedConditions.jsReturnsValue("return document.readyState === 'complete';"));
@@ -127,20 +123,23 @@ public class CheckKeyboardFunctionality {
 
 						if (!(driver.getCurrentUrl().equals(baseURL))
 								|| driver.getCurrentUrl().contains("https://www.heart.org/?form=")) {
-						
+
 							if (driver.getCurrentUrl().contains("https://www.heart.org/?form=")) {
 								driver.switchTo().frame("__checkout2");
 								Thread.sleep(3000);
-								driver.findElement(By.xpath("//button[@data-tracking-element-name='closeButton']")).click();
+								driver.findElement(By.xpath("//button[@data-tracking-element-name='closeButton']"))
+										.click();
 								driver.switchTo().defaultContent();
-							
+
 							}
 							JavascriptExecutor js = (JavascriptExecutor) driver;
-					        boolean isDocumentReady = (boolean) js.executeScript("return document.readyState === 'complete';");
+							boolean isDocumentReady = (boolean) js
+									.executeScript("return document.readyState === 'complete';");
 
-							if(isDocumentReady) {
-							currentURL = driver.getCurrentUrl();}
-						
+							if (isDocumentReady) {
+								currentURL = driver.getCurrentUrl();
+							}
+
 							driver.navigate().back();
 
 						} else {
@@ -168,27 +167,26 @@ public class CheckKeyboardFunctionality {
 								}
 							}
 						}
-				
-						if (driver.getCurrentUrl().contains("https://www.heart.org/?form=") || linkOfFocusedElement.contains("https://mygiving.heart.org/")) {
-						
+
+						if (driver.getCurrentUrl().contains("https://www.heart.org/?form=")
+								|| linkOfFocusedElement.contains("https://mygiving.heart.org/")) {
+
 							Assert.assertTrue(true);
 						} else {
-						
+
 							System.out.println(currentURL);
 							System.out.println(linkOfFocusedElement);
 							AppUtil.log(this.getClass(), "Current URL : " + currentURL);
 							AppUtil.log(this.getClass(), "Link of Focused Element : " + linkOfFocusedElement);
 							Assert.assertEquals(currentURL, linkOfFocusedElement);
-							
+
 						}
 					}
 
 				}
-					tabbedButton.add(linkOfFocusedElement);
-				}
-		
-			
-			
+				tabbedButton.add(linkOfFocusedElement);
+			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
